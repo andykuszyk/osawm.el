@@ -1,0 +1,36 @@
+* osawm.el
+=osawm= is a window manager for Mac OS implemented in Emacs, using =osascript= to execute Applescript scripts. It isn't /really/ a window manager, but uses ✨ /smoke and mirrors/ 🪄 to give you the illusion that Emacs is managing your windows. If you're interested in more details, see the /How it works/ section later.
+** Installation
+*** Install the Emacs package
+This package hasn't been published on MELPA yet, but you can install it from source control. For example, if you use =use-package=:
+
+#+begin_src elisp :results none
+(use-package osawm
+  :vc (:fetcher github :repo "andykuszyk/osawm.el"))
+#+end_src
+** Usage
+There are two main functions of this package:
+
+1. "Binding" a Mac OS app to an =osawm= buffer
+2. "Activating" a Mac OS app from an =osawm= Emacs buffer
+*** Binding an app
+You launch apps as normal with =osawm= using whichever launch, shortcut, or menu you normally would. By default, when an application is launched in Mac OS it is /not/ managed by =osawm=.
+
+If you want the application window to be managed by =osawm=, you need to /bind/ it to a new buffer using the =osawm-bind-app= command.
+
+This establishes a relationship between the app and the new buffer in Emacs, which will allow you to manage the app window's location and size using an Emacs window.
+*** Activating an app
+An =osawm= buffer normally displays a screenshot of its app when it isn't /activated/. In order to actually interact with the app, and bring it into focus, you open the buffer and /activate/ it. This will focus the app over the Emacs frame.
+
+Activating an app is achieved by running the =osawm-activate= command (bound to =C-c C-c= by default) in an =osawm= buffer.
+
+You are now /out of Emacs/, and will need to return to Emacs to continue managing your windows.
+*** Returning to Emacs
+Since the last activated window was Emacs, you should always be able to return directly to Emacs by pressing =Cmd-tab= once (using Mac OS' native window switcher).
+*** A note on updating windows
+Often the contents of your app will have changed since a screenshot was last taken, and displayed in the =osawm= buffer. Similar, if you resize the buffer, the screenshot won't automatically update.
+
+This will probable be automated in the future, but for now just run =osawm-update-buffer= (bound to =C-c RET= by default) to resize the application, and update its screenshot.
+** TODO Configuration
+** TODO How it works
+** TODO Contributions
