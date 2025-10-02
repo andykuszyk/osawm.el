@@ -47,8 +47,9 @@ the application, and taking a new screenshot."
   (insert-file-contents (osawm--refresh-screenshot osawm--buffer-app))
   (revert-buffer)))
 
-(defun osawm--refresh-screenshot (app)
-  "Update the size of APP, and take a new screenshot."
+(defun osawm--refresh-screenshot (app &optional focus-frame)
+  "Update the size of APP, and take a new screenshot.
+If FOCUS-FRAME is non-nil, focus the Emacs frame after capturing."
   (let* ((left (window-pixel-left))
 	 (right (+ (window-pixel-left) (window-pixel-width)))
 	 (top (+  (window-pixel-top) osawm-titlebar-height))
@@ -67,7 +68,8 @@ the application, and taking a new screenshot."
       (- right left)
       (- bottom top)
       temp-file-name))
-    (select-frame-set-input-focus (selected-frame))
+    (when focus-frame
+      (select-frame-set-input-focus (selected-frame)))
     temp-file-name))
 
 (defun osawm--ensure-single-window ()
@@ -85,13 +87,8 @@ the application, and taking a new screenshot."
 (defun osawm-activate ()
   "Activates the app associated with the current osawm buffer."
   (interactive)
-  (shell-command (format "
-osascript <<EOF
-tell application \"%s\"
-    activate
-end tell
-EOF
-" osawm--buffer-app)))
+  (insert-file-contents (osawm--refresh-screenshot osawm--buffer-app nil))
+  (revert-buffer))
 
 (defvar osawm-major-mode-map
   (let ((map (make-sparse-keymap)))
