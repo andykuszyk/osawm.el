@@ -126,7 +126,8 @@ EOF"
 (defun osawm--list-applications ()
   "Lists open applications."
   (interactive)
-  (string-split (shell-command-to-string "
+  (mapcar #'string-trim
+          (string-split (shell-command-to-string "
 osascript <<EOF
 tell application \"System Events\"
     -- Get the names of all open (non-background) applications
@@ -140,7 +141,7 @@ set openAppsList to openApps as string
 -- Output the list to the terminal
 do shell script \"echo \" & quoted form of openAppsList
 EOF
-") ","))
+") ",")))
 
 (provide 'osawm)
 ;;; osawm.el ends here
