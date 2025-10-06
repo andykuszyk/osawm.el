@@ -10,67 +10,129 @@
   :group 'applications
   :prefix "osawm-")
 
+;; TODO: try to determine this programmatically
 (defcustom osawm-titlebar-height
   68
   "The height of the title bar, which is taken into account when resizing windows."
   :type 'number)
 
+;; TODO: try to determine this programmatically
 (defcustom osawm-modeline-height
   20
   "The height of the modeline, which is taken into account when resizing windows."
   :type 'number)
 
-(defvar-local osawm--buffer-app nil
-  "The buffer-local name of the app represented by the buffer.")
+(defvar-local osawm--window-name nil
+  "The buffer-local name of window represented by the buffer.
+This window name combined with 'osawm--app-name' uniquely identifies
+the window associated with the buffer.")
 
-(defun osawm-bind-app (app)
-  "Binds APP to a new osawm buffer.
-Binds an already open app on your system to a new osawm buffer, so that
-the apps location and size can be controlled by manipulating the buffer's
-window."
-  (interactive
-   (list (completing-read "Application: " (osawm--list-applications) nil t)))
-  (let* ((buffer-name (format "*osawm %s*" app)))
-    (find-file (osawm--refresh-screenshot app))
-    (setq osawm--buffer-app app)
-    (osawm-major-mode)
-    (rename-buffer buffer-name)))
+(defvar-local osawm--app-name nil
+  "The buffer-local name of app represented by the buffer.
+This app name combined with 'osawm--window-name' uniquely identifies
+the window associated with the buffer.")
 
-(defun osawm-update-buffer ()
-  "Update the current buffer.
-Refreshes the image of the current buffer's application by resizing
-the application, and taking a new screenshot."
-  (interactive)
-  (when (and (eq major-mode 'osawm-major-mode)
-             (boundp 'osawm--buffer-app)
-             osawm--buffer-app)
-  (insert-file-contents (osawm--refresh-screenshot osawm--buffer-app))
-  (revert-buffer)))
-
-(defun osawm--refresh-screenshot (app &optional focus-frame)
-  "Update the size of APP, and take a new screenshot.
-If FOCUS-FRAME is non-nil, focus the Emacs frame after capturing."
+(defun osawm--get-window-bounds ()
+  "Get the bounds of the current window.
+Returns a plist with the following keys: :left, :right, :top, :bottom."
   (let* ((left (window-pixel-left))
 	 (right (+ (window-pixel-left) (window-pixel-width)))
 	 (top (+  (window-pixel-top) osawm-titlebar-height))
 	 (bottom (- (+ (window-pixel-top)
 		       (window-pixel-height)
 		       osawm-titlebar-height)
-		    osawm-modeline-height))
-	 (temp-file-name
-	  (f-join (temporary-file-directory) (format "%s.png" app))))
-    (osawm--resize-application app left top right bottom)
+		    osawm-modeline-height)))
+    (list :left left :right right :top top :bottom bottom)))
+
+(defun osawm-launch-chrome (url name)
+  "Open a new Chrome window named NAME at URL."
+  (interactive "Murl: \nMname: ") ; TODO bind args
+  (shell-command (format "
+osascript <<EOF
+tell application \"Google Chrome\"
+    activate
+    set newWindow to make new window
+    set URL of active tab of newWindow to \"%s\"
+    set given name of newWindow to \"%s\"
+end tell
+EOF" url name))
+  (let* ((window-bounds (osawm--get-window-bounds)))
+    (osawm--resize-chrome-window name window-bounds)
+    (switch-to-buffer
+     (osawm--make-buffer
+      name
+      (osawm--take-screenshot name window-bounds)))))
+
+(defun osawm--make-buffer (name filepath)
+  "Make a new OSAWM buffer called NAME with the image at FILEPATH.
+Returns the newly created buffer."
+  (let* ((buffer-name (format "*osawm %s*" name))
+	 (osawm-buffer (get-buffer-create buffer-name)))
+    (with-current-buffer osawm-buffer
+      (insert-file-contents filepath)
+      (osawm-mode)
+      (setq osawm--window-name name))
+    osawm-buffer))
+
+(defun osawm--take-screenshot (name window-bounds)
+  "Take a screenshot for NAME using the WINDOW-BOUNDS.
+Returns the filename of the captured screenshot as an absolute file path."
+  (let* ((temp-file-name
+	  (f-join (temporary-file-directory) (format "%s.png" name)))
+	 (left (plist-get window-bounds :left))
+	 (top (plist-get window-bounds :top)))
     (shell-command
      (format
-      "screencapture -R %d,%d,%d,%d \"%s\""
+      "screencapture -x -R %d,%d,%d,%d \"%s\""
       left
       top
-      (- right left)
-      (- bottom top)
+      (- (plist-get window-bounds :right) left)
+      (- (plist-get window-bounds :bottom) top)
       temp-file-name))
-    (when focus-frame
-      (select-frame-set-input-focus (selected-frame)))
     temp-file-name))
+
+(defun osawm--resize-chrome-window (name window-bounds)
+  "Resize the Chrome window with the given name NAME to WINDOW-BOUNDS."
+  (shell-command
+   (format
+    "osascript <<EOF
+tell application \"Google Chrome\"
+    activate
+    repeat with w in every window
+        if given name of w is equal to \"%s\" then
+            set bounds of w to {%d, %d, %d, %d} -- {left, top, right, bottom}
+        else
+            set bounds of w to {0, 0, 10, 10}
+        end if
+    end repeat
+end tell
+EOF"
+    name
+    (plist-get window-bounds :left)
+    (plist-get window-bounds :top)
+    (plist-get window-bounds :right)
+    (plist-get window-bounds :bottom))))
+
+(defun osawm--assert-osawm-buffer ()
+  (if (and (eq major-mode 'osawm-mode)
+	   (boundp 'osawm--window-name)
+           osawm--window-name)
+      t
+    (error "not a valid osawm buffer")))
+
+(defun osawm-activate ()
+  "Activates the window associated with the current OSAWM buffer."
+  (interactive)
+  (osawm--assert-osawm-buffer)
+  (let* ((window-bounds (osawm--get-window-bounds))
+	 (inhibit-read-only t)
+	 (name osawm--window-name))
+    (osawm--resize-chrome-window osawm--window-name window-bounds)
+    (insert-file-contents
+     (osawm--take-screenshot osawm--window-name window-bounds)
+     nil nil nil t)
+    (osawm-mode)
+    (setq osawm--window-name name)))
 
 (defun osawm--ensure-single-window ()
   "Ensure osawm buffer is only displayed in one window."
@@ -79,66 +141,23 @@ If FOCUS-FRAME is non-nil, focus the Emacs frame after capturing."
       (unless (eq window (selected-window))
         (set-window-buffer window (other-buffer buffer))))))
 
-(defun osawm--enforce-single-window ()
-  "Enforce single window constraint for osawm buffers."
-  (when (eq major-mode 'osawm-major-mode)
-    (osawm--ensure-single-window)))
-
-(defun osawm-activate ()
-  "Activates the app associated with the current osawm buffer."
-  (interactive)
-  (insert-file-contents (osawm--refresh-screenshot osawm--buffer-app nil))
-  (revert-buffer))
-
-(defvar osawm-major-mode-map
+(defvar osawm-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "C-c C-c") 'osawm-activate)
-    (define-key map (kbd "C-c RET") 'osawm-update-buffer)
     map)
   "Keymap for osawm-major-mode.")
 
-(define-derived-mode osawm-major-mode image-mode "OSAWM"
-  "Major mode for OSAWM application buffers."
-  :keymap osawm-major-mode-map
+(define-derived-mode osawm-mode image-mode "OSAWM"
+  "Major mode for OSAWM window buffers."
+  :keymap osawm-mode-map
   (display-line-numbers-mode -1)
   (add-hook 'window-configuration-change-hook #'osawm--enforce-single-window nil t)
   (osawm--ensure-single-window))
 
-(defun osawm--resize-application (application left top right bottom)
-  "Resize APPLICATION to LEFT, RIGHT, BOTTOM, TOP."
-  (message (format  "resizing application  %s" application))
-  (shell-command
-   (format
-    "
-osascript <<EOF
-tell application \"%s\"
-	activate
-	tell window 1
-		set bounds to {%d, %d, %d, %d} -- {left, top, right, bottom}
-	end tell
-end tell
-EOF"
-    application left top right bottom)))
-
-(defun osawm--list-applications ()
-  "Lists open applications."
-  (interactive)
-  (mapcar #'string-trim
-          (string-split (shell-command-to-string "
-osascript <<EOF
-tell application \"System Events\"
-    -- Get the names of all open (non-background) applications
-    set openApps to name of every process whose background only is false
-end tell
-
--- Join the list of application names into a single string with newlines
-set AppleScript's text item delimiters to \",\"
-set openAppsList to openApps as string
-
--- Output the list to the terminal
-do shell script \"echo \" & quoted form of openAppsList
-EOF
-") ",")))
+(defun osawm--enforce-single-window ()
+  "Enforce single window constraint for OSAWM buffers."
+  (when (eq major-mode 'osawm-mode)
+    (osawm--ensure-single-window)))
 
 (provide 'osawm)
 ;;; osawm.el ends here
