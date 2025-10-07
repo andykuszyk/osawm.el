@@ -22,6 +22,8 @@
   "The height of the modeline, which is taken into account when resizing windows."
   :type 'number)
 
+(defvar osawm--focus-changing nil "Flags when the frame focus is changing.")
+
 (defvar-local osawm--window-name nil
   "The buffer-local name of window represented by the buffer.
 This window name combined with 'osawm--app-name' uniquely identifies
@@ -151,15 +153,16 @@ EOF"
   "Major mode for OSAWM window buffers."
   :keymap osawm-mode-map
   (display-line-numbers-mode -1)
-  (add-hook 'window-configuration-change-hook #'osawm--enforce-single-window nil t)
+  (add-hook
+   'window-configuration-change-hook
+   #'osawm--window-configuration-changed nil t)
   (osawm--ensure-single-window))
 
-(defun osawm--enforce-single-window ()
-  "Enforce single window constraint for OSAWM buffers."
+(defun osawm--window-configuration-changed ()
+  "Update the display of apps upon a window configuration change."
   (when (eq major-mode 'osawm-mode)
-    (osawm--ensure-single-window)))
-
-(defvar osawm--focus-changing nil "Flags when the frame focus is changing.")
+    (osawm--ensure-single-window)
+    (osawm--after-focus-change)))
 
 (defun osawm--after-focus-change ()
   "Function to handle focus change when global-osawm-mode is active."
