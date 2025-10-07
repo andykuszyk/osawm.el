@@ -159,5 +159,32 @@ EOF"
   (when (eq major-mode 'osawm-mode)
     (osawm--ensure-single-window)))
 
+(defvar osawm--focus-changing nil "Flags when the frame focus is changing.")
+
+(defun osawm--after-focus-change ()
+  "Function to handle focus change when global-osawm-mode is active."
+  (when (frame-focus-state)
+    (if osawm--focus-changing
+	(setq osawm--focus-changing nil)
+      (when (and (eq major-mode 'osawm-mode) osawm--window-name)
+	(setq osawm--focus-changing t)
+	(osawm-activate)
+	(shell-command (format "
+osascript <<EOF
+tell application \"System Events\"
+    set targetProcess to first process whose unix id is %d
+    set frontmost of targetProcess to true
+end tell
+EOF" (emacs-pid)))))))
+
+(define-minor-mode global-osawm-mode
+  "Global minor mode for OSAWM window management.
+When enabled, automatically updates OSAWM buffers when they gain focus."
+  :global t
+  :lighter " OSAWM"
+  (if global-osawm-mode
+      (add-function :after after-focus-change-function #'osawm--after-focus-change)
+    (remove-function after-focus-change-function #'osawm--after-focus-change)))
+
 (provide 'osawm)
 ;;; osawm.el ends here
