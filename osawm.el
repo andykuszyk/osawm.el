@@ -160,9 +160,10 @@ EOF"
 
 (defun osawm--window-configuration-changed ()
   "Update the display of apps upon a window configuration change."
-  (when (eq major-mode 'osawm-mode)
-    (osawm--ensure-single-window)
-    (osawm--after-focus-change)))
+  (unless (active-minibuffer-window)
+    (when (eq major-mode 'osawm-mode)
+      (osawm--ensure-single-window)
+      (osawm--after-focus-change))))
 
 (defun osawm--after-focus-change ()
   "Function to handle focus change when global-osawm-mode is active."
