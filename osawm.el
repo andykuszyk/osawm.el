@@ -46,18 +46,28 @@ Returns a plist with the following keys: :left, :right, :top, :bottom."
 		    osawm-modeline-height)))
     (list :left left :right right :top top :bottom bottom)))
 
-(defun osawm-launch-chrome (url name)
-  "Open a new Chrome window named NAME at URL."
-  (interactive "Murl: \nMname: ") ; TODO bind args
+(defun osawm-search-chrome (query)
+  "Open a new Chrome window with the search QUERY."
+  (interactive "MSearch: ")
+  (osawm-launch-chrome
+   (format "https://www.google.com/search?q=%s" query)
+   query
+   "normal"))
+
+(defun osawm-launch-chrome (url name mode)
+  "Open a new Chrome window named NAME at URL in MODE.
+MODE should be either 'normal' or 'incognito'"
+  (interactive "MURL: \nMName: \nMMode: ") ; TODO bind args
+  (assert (or (string-equal mode "normal") (string-equal mode "incognito")))
   (shell-command (format "
 osascript <<EOF
 tell application \"Google Chrome\"
     activate
-    set newWindow to make new window
+    set newWindow to make new window with properties {mode: \"%s\"}
     set URL of active tab of newWindow to \"%s\"
     set given name of newWindow to \"%s\"
 end tell
-EOF" url name))
+EOF" mode url name))
   (let* ((window-bounds (osawm--get-window-bounds)))
     (osawm--resize-chrome-window name window-bounds)
     (switch-to-buffer
