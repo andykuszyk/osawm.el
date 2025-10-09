@@ -18,7 +18,7 @@ There are two main functions of this package:
 1. "Launching" a Mac OS app to an =osawm= buffer (/currently only Chrome is supported/)
 2. "Activating" a Mac OS app from an =osawm= Emacs buffer
 *** Launching an app
-If you want an apps position and visibility to be managed by =osawm=, it needs to be /launched/ by =osawm= too.
+If you want an app's position and visibility to be managed by =osawm=, it needs to be /launched/ by =osawm= too.
 
 Currently, only Chrome is supported via the =osawm-launch-chrome= command.
 
@@ -32,9 +32,7 @@ You are now /out of Emacs/, and will need to return to Emacs to continue managin
 *** Returning to Emacs
 Since the last activated window was Emacs, you should always be able to return directly to Emacs by pressing =Cmd-tab= once (using Mac OS' native window switcher).
 *** A note on updating windows
-Often the contents of your app will have changed since a screenshot was last taken, and displayed in the =osawm= buffer. Similar, if you resize the buffer, the screenshot won't automatically update.
-
-This will probably be automated in the future, but for now just run =osawm-activate= ( =C-c C-c=) again to resize the application, and update its screenshot.
+When you return to Emacs, or resize a window within Emacs, the screenshots displayed by =osawm= buffers should automatically update.
 ** TODO Configuration
 ** TODO How it works
 ** TODO Contributions
