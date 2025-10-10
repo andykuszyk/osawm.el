@@ -37,6 +37,11 @@ You are now /out of Emacs/, and will need to return to Emacs to continue managin
 Since the last activated window was Emacs, you should always be able to return directly to Emacs by pressing =Cmd-tab= once (using Mac OS' native window switcher).
 *** A note on updating windows
 When you return to Emacs, or resize a window within Emacs, the screenshots displayed by =osawm= buffers should automatically update. This behaviour is enabled by =global-osawm-mode=.
-** TODO Configuration
-** TODO How it works
-** TODO Contributions
+** How it works
+=osawm= works by establishing a simple relationship between a special Emacs buffer (in =osawm-mode=) with a Mac OS /application window/ based on the window's name.
+
+=osawm= uses screenshots of the window to display a representation of the window's contents inside Emacs. This representation is obviously static, but does allow you to see a web page in Chrome alongside a regular Emacs buffer for example.
+
+When you want to interact with the Mac OS application, you /activate/ the =osawm= buffer (=C-c C-c= by default). =osawm= handles positioning and resizing the window to match the bounds of the /Emacs window/ using Applescript.
+** Contributions
+Contributions to this repo are welcome. Please fork it and submit your PRs via GitHub.
