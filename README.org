@@ -4,6 +4,8 @@
 #+begin_quote
 🚧 This package is a work in progress, and currently only supports managing Google Chrome windows.
 #+end_quote
+
+[[./screencast.gif]]
 ** Installation
 *** Install the Emacs package
 This package hasn't been published on MELPA yet, but you can install it from source control. For example, if you use =use-package=:
