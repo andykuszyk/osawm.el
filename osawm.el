@@ -10,18 +10,6 @@
   :group 'applications
   :prefix "osawm-")
 
-;; TODO: try to determine this programmatically
-(defcustom osawm-titlebar-height
-  68
-  "The height of the title bar, which is taken into account when resizing windows."
-  :type 'number)
-
-;; TODO: try to determine this programmatically
-(defcustom osawm-modeline-height
-  20
-  "The height of the modeline, which is taken into account when resizing windows."
-  :type 'number)
-
 (defvar osawm--focus-changing nil "Flags when the frame focus is changing.")
 
 (defvar-local osawm--window-name nil
@@ -37,13 +25,14 @@ the window associated with the buffer.")
 (defun osawm--get-window-bounds ()
   "Get the bounds of the current window.
 Returns a plist with the following keys: :left, :right, :top, :bottom."
-  (let* ((left (window-pixel-left))
+  (let* ((titlebar-height (nth 1 (frame-edges nil 'inner-edges)))
+	 (left (window-pixel-left))
 	 (right (+ (window-pixel-left) (window-pixel-width)))
-	 (top (+  (window-pixel-top) osawm-titlebar-height))
+	 (top (+  (window-pixel-top) titlebar-height))
 	 (bottom (- (+ (window-pixel-top)
 		       (window-pixel-height)
-		       osawm-titlebar-height)
-		    osawm-modeline-height)))
+		       titlebar-height)
+		    (window-mode-line-height))))
     (list :left left :right right :top top :bottom bottom)))
 
 (defun osawm-search-chrome (query)
