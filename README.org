@@ -10,8 +10,12 @@ This package hasn't been published on MELPA yet, but you can install it from sou
 
 #+begin_src elisp :results none
 (use-package osawm
-  :vc (:fetcher github :repo "andykuszyk/osawm.el"))
+  :vc (:fetcher github :repo "andykuszyk/osawm.el")
+  :config (global-osawm-mode))
 #+end_src
+#+begin_quote
+💡 Enabling =global-osawm-mode= isn't /completely/ necessary, but does enable refreshing window screenshots when you switch back to Emacs.
+#+end_quote
 ** Usage
 There are two main functions of this package:
 
@@ -32,7 +36,7 @@ You are now /out of Emacs/, and will need to return to Emacs to continue managin
 *** Returning to Emacs
 Since the last activated window was Emacs, you should always be able to return directly to Emacs by pressing =Cmd-tab= once (using Mac OS' native window switcher).
 *** A note on updating windows
-When you return to Emacs, or resize a window within Emacs, the screenshots displayed by =osawm= buffers should automatically update.
+When you return to Emacs, or resize a window within Emacs, the screenshots displayed by =osawm= buffers should automatically update. This behaviour is enabled by =global-osawm-mode=.
 ** TODO Configuration
 ** TODO How it works
 ** TODO Contributions
