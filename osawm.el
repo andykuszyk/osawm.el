@@ -43,6 +43,14 @@ Returns a plist with the following keys: :left, :right, :top, :bottom."
    query
    "normal"))
 
+(defun osawm-search-chrome-incognito (query)
+  "Open a new Chrome window with the search QUERY."
+  (interactive "MSearch: ")
+  (osawm-launch-chrome
+   (format "https://www.google.com/search?q=%s" query)
+   (format "%s - incognito" query)
+   "incognito"))
+
 (defun osawm-open-chrome (address)
   "Open a new Chrome window at ADDRESS."
   (interactive (list (read-string "URL: " "https://")))
