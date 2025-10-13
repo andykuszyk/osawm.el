@@ -43,6 +43,14 @@ Returns a plist with the following keys: :left, :right, :top, :bottom."
    query
    "normal"))
 
+(defun osawm-open-chrome (address)
+  "Open a new Chrome window at ADDRESS."
+  (interactive (list (read-string "URL: " "https://")))
+  (osawm-launch-chrome
+   address
+   (string-replace "/" "-" (string-replace "https://" "" address))
+   "normal"))
+
 (defun osawm-launch-chrome (url name mode)
   "Open a new Chrome window named NAME at URL in MODE.
 MODE should be either 'normal' or 'incognito'"
