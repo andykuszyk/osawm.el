@@ -39,6 +39,13 @@ You are now /out of Emacs/, and will need to return to Emacs to continue managin
 Since the last activated window was Emacs, you should always be able to return directly to Emacs by pressing =Cmd-tab= once (using Mac OS' native window switcher).
 *** A note on updating windows
 When you return to Emacs, or resize a window within Emacs, the screenshots displayed by =osawm= buffers should automatically update. This behaviour is enabled by =global-osawm-mode=.
+** Configuration
+*** Disabling automatic window updates
+=osawm= will try to keep the Mac OS windows it manages in-sync with their corresponding Emacs window sizes and locations. This behaviour can have unexpected consequences sometimes, so it can be disabled by setting =osawm-automatically-update-windows= to =nil=:
+
+#+begin_src elisp :results none
+(setq osawm-automatically-update-windows nil)
+#+end_src
 ** How it works
 =osawm= works by establishing a simple relationship between a special Emacs buffer (in =osawm-mode=) with a Mac OS /application window/ based on the window's name.
 

@@ -10,6 +10,10 @@
   :group 'applications
   :prefix "osawm-")
 
+(defcustom osawm-automatically-update-windows
+  t
+  "Automatically updates window sizes and locations if 't'.")
+
 (defvar osawm--focus-changing nil "Flags when the frame focus is changing.")
 
 (defvar-local osawm--window-name nil
@@ -182,7 +186,7 @@ EOF"
 
 (defun osawm--after-focus-change ()
   "Function to handle focus change when global-osawm-mode is active."
-  (when (frame-focus-state)
+  (when (and osawm-automatically-update-windows (frame-focus-state))
     (if osawm--focus-changing
 	(setq osawm--focus-changing nil)
       (when (and (eq major-mode 'osawm-mode) osawm--window-name)
