@@ -63,6 +63,34 @@ Returns a plist with the following keys: :left, :right, :top, :bottom."
    (string-replace "/" "-" (string-replace "https://" "" address))
    "normal"))
 
+(defun osawm--list-chrome-windows ()
+  "List open Chrome windows."
+  (remove "" (split-string (shell-command-to-string "
+osascript <<EOF
+set windowInfo to {}
+tell application \"Google Chrome\"
+    repeat with win in every window
+        set end of windowInfo to name of win
+    end repeat
+end tell
+
+set AppleScript's text item delimiters to \"\\n\"
+return windowInfo as string
+EOF
+") "\n")))
+
+(defun osawm-add-chrome-window (name)
+  "Add a pre-existing window with NAME to a new osawm buffer.
+This is only really useful for adding windows whose buffers have accidently
+been deleted within Emacs."
+  (interactive (list (completing-read "Window: " (osawm--list-chrome-windows))))
+  (let* ((window-bounds (osawm--get-window-bounds)))
+    (osawm--resize-chrome-window name window-bounds)
+    (switch-to-buffer
+     (osawm--make-buffer
+      name
+      (osawm--take-screenshot name window-bounds)))))
+
 (defun osawm-launch-chrome (url name mode)
   "Open a new Chrome window named NAME at URL in MODE.
 MODE should be either 'normal' or 'incognito'"
