@@ -238,5 +238,14 @@ When enabled, automatically updates OSAWM buffers when they gain focus."
       (add-function :after after-focus-change-function #'osawm--after-focus-change)
     (remove-function after-focus-change-function #'osawm--after-focus-change)))
 
+(defun osawm-spotify-toggle-play-pause ()
+  "Toggles Spotify's play/pause status"
+  (interactive)
+  (shell-command "osascript <<EOF
+tell application \"Spotify\"
+    playpause
+end tell
+EOF"))
+
 (provide 'osawm)
 ;;; osawm.el ends here
