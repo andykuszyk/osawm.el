@@ -80,17 +80,30 @@ return windowInfo as string
 EOF
 ") "\n")))
 
-(defun osawm-add-chrome-window (name)
-  "Add a pre-existing window with NAME to a new osawm buffer.
+(defun osawm-add-chrome-window (chrome-window new-name)
+  "Add a pre-existing window with CHROME-WINDOW to a new buffer named NEW-NAME.
 This is only really useful for adding windows whose buffers have accidently
 been deleted within Emacs."
-  (interactive (list (completing-read "Window: " (osawm--list-chrome-windows))))
+  (interactive (list
+		(completing-read "Window: " (osawm--list-chrome-windows))
+		(read-string "Name: ")))
   (let* ((window-bounds (osawm--get-window-bounds)))
-    (osawm--resize-chrome-window name window-bounds)
+    (osawm--rename-chrome-window chrome-window new-name)
+    (osawm--resize-chrome-window new-name window-bounds)
     (switch-to-buffer
      (osawm--make-buffer
-      name
-      (osawm--take-screenshot name window-bounds)))))
+      new-name
+      (osawm--take-screenshot new-name window-bounds)))))
+
+(defun osawm--rename-chrome-window (chrome-window new-name)
+  "Rename CHROME-WINDOW to NEW-NAME."
+  (shell-command-to-string (format "
+osascript <<EOF
+tell application \"Google Chrome\"
+    set win to first window whose name is \"%s\"
+    set given name of win to \"%s\"
+end tell
+EOF" chrome-window new-name)))
 
 (defun osawm-launch-chrome (url name mode)
   "Open a new Chrome window named NAME at URL in MODE.
