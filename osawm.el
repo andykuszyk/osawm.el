@@ -194,6 +194,7 @@ EOF"
 (defvar osawm-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "C-c C-c") 'osawm-activate)
+    (define-key map [mouse-1] 'osawm-activate)
     map)
   "Keymap for osawm-major-mode.")
 
