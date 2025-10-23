@@ -126,6 +126,24 @@ EOF" mode url name))
       name
       (osawm--take-screenshot name window-bounds)))))
 
+(defun osawm--list-chrome-windows ()
+  "List the names of the Chrome windows currently managed by osawm."
+  (let* ((osawm-buffers
+	  (seq-filter
+	   (lambda (n) (s-contains? "*osawm" n))
+	   (mapcar #'buffer-name (buffer-list))))
+	 (osawm-chrome-windows
+	  (seq-filter
+	   (lambda (i) (if i t nil)) ; TODO: this should probably check the
+				     ; /type/ of the window to make sure it's a
+				     ; chrome window
+	   (mapcar
+	    (lambda (b)
+	      (with-current-buffer b
+		osawm--window-name))
+	    osawm-buffers))))
+    osawm-chrome-windows))
+
 (defun osawm--make-buffer (name filepath)
   "Make a new OSAWM buffer called NAME with the image at FILEPATH.
 Returns the newly created buffer."
@@ -156,18 +174,26 @@ Returns the filename of the captured screenshot as an absolute file path."
 
 (defun osawm--resize-chrome-window (name window-bounds)
   "Resize the Chrome window with the given name NAME to WINDOW-BOUNDS."
+  (mapcar
+   (lambda (n)
+     (unless (string-equal n name)
+       (shell-command
+	(format
+	 "osascript <<EOF
+tell application \"Google Chrome\"
+    set w to first window whose name is \"%s\"
+    set bounds of w to {0, 0, 10, 10}
+end tell
+EOF"
+	 n))))
+   (osawm--list-chrome-windows))
   (shell-command
    (format
     "osascript <<EOF
 tell application \"Google Chrome\"
+    set w to first window whose name is \"%s\"
+    set bounds of w to {%d, %d, %d, %d} -- {left, top, right, bottom}
     activate
-    repeat with w in every window
-        if given name of w is equal to \"%s\" then
-            set bounds of w to {%d, %d, %d, %d} -- {left, top, right, bottom}
-        else
-            set bounds of w to {0, 0, 10, 10}
-        end if
-    end repeat
 end tell
 EOF"
     name
@@ -177,6 +203,7 @@ EOF"
     (plist-get window-bounds :bottom))))
 
 (defun osawm--assert-osawm-buffer ()
+  "Check that the current buffer is a valid osawm buffer."
   (if (and (eq major-mode 'osawm-mode)
 	   (boundp 'osawm--window-name)
            osawm--window-name)
