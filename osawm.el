@@ -181,7 +181,7 @@ Returns the filename of the captured screenshot as an absolute file path."
 	(format
 	 "osascript <<EOF
 tell application \"Google Chrome\"
-    set w to first window whose name is \"%s\"
+    set w to first window whose name contains \"%s\"
     set bounds of w to {0, 0, 10, 10}
 end tell
 EOF"
@@ -191,7 +191,7 @@ EOF"
    (format
     "osascript <<EOF
 tell application \"Google Chrome\"
-    set w to first window whose name is \"%s\"
+    set w to first window whose name contains \"%s\"
     set bounds of w to {%d, %d, %d, %d} -- {left, top, right, bottom}
     activate
 end tell
